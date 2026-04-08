@@ -1,5 +1,12 @@
-# Chapitres scrappés (images volumineuses)
-one_piece/
+# Configuration Claude (permissions locales, ne pas partager)
+.claude/
 
-# Progression de lecture locale
+# Images scrappées One Piece (la structure des dossiers est conservée)
+one_piece/**/*.jpg
+one_piece/**/*.jpeg
+one_piece/**/*.png
+one_piece/**/*.webp
+one_piece/**/*.html
+
+# Progression de lecture (données personnelles)
 reading_progress.json
