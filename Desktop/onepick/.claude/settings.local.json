@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for ch:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/cques/Desktop/onepick/one_piece/**)",
+      "Bash(done)",
+      "Bash(./gradlew compileKotlinDesktop)"
+    ]
+  }
+}

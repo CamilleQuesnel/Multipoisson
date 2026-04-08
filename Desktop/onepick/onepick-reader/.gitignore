@@ -1,0 +1,11 @@
+# Gradle build outputs
+.gradle/
+build/
+**/build/
+
+# Local properties
+local.properties
+
+# OS
+.DS_Store
+Thumbs.db
