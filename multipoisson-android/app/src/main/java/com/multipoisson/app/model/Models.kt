@@ -9,9 +9,6 @@ enum class GameMode { TABLE, MIXTE, DEFI }
 
 data class GameConfig(
     val selectedTables: List<Int>,
-    val excludeZero: Boolean = false,
-    val excludeOne: Boolean = false,
-    val excludeTen: Boolean = false,
     val timerEnabled: Boolean = false,
     val questionCount: Int,
     val profileId: String = "",

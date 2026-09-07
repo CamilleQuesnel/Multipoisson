@@ -4,14 +4,16 @@ import com.multipoisson.app.model.GameConfig
 import com.multipoisson.app.model.Question
 import kotlin.math.max
 
+private val TRIVIAL_MULTIPLIERS = setOf(0, 1, 10)
+
 fun generateQuestions(config: GameConfig): List<Question> {
     val pool = mutableListOf<Question>()
     for (table in config.selectedTables) {
         for (m in 0..10) {
-            if (config.excludeZero && m == 0) continue
-            if (config.excludeOne && m == 1) continue
-            if (config.excludeTen && m == 10) continue
-            pool.add(Question(a = table, b = m, answer = table * m))
+            val q = Question(a = table, b = m, answer = table * m)
+            // Trivial multipliers appear once; others appear twice (lower frequency)
+            if (m !in TRIVIAL_MULTIPLIERS) pool.add(q)
+            pool.add(q)
         }
     }
     if (pool.isEmpty()) return emptyList()
@@ -39,10 +41,9 @@ fun generateAdaptiveQuestions(
         val weight = weights.getOrDefault(table, 2).coerceIn(1, 5)
         repeat(weight) {
             for (m in 0..10) {
-                if (config.excludeZero && m == 0) continue
-                if (config.excludeOne && m == 1) continue
-                if (config.excludeTen && m == 10) continue
-                pool.add(Question(a = table, b = m, answer = table * m))
+                val q = Question(a = table, b = m, answer = table * m)
+                if (m !in TRIVIAL_MULTIPLIERS) pool.add(q)
+                pool.add(q)
             }
         }
     }

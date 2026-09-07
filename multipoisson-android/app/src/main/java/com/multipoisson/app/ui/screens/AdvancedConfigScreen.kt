@@ -28,18 +28,8 @@ fun AdvancedConfigScreen(
     val mode = gameViewModel.selectedMode
     val isDefi = mode == GameMode.DEFI
 
-    var excludeZero by remember { mutableStateOf(false) }
-    var excludeOne  by remember { mutableStateOf(false) }
-    var excludeTen  by remember { mutableStateOf(false) }
     var timerEnabled by remember { mutableStateOf(isDefi) }
     var questionCount by remember { mutableIntStateOf(20) }
-
-    val maxPool = run {
-        val range = (0..10).count { m ->
-            !(excludeZero && m == 0) && !(excludeOne && m == 1) && !(excludeTen && m == 10)
-        }
-        selectedTables.size * range
-    }
     val clampedCount = questionCount.coerceIn(1, MAX_QUESTION_COUNT)
 
     Column(
@@ -67,15 +57,6 @@ fun AdvancedConfigScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(20.dp))
-
-            // Exclusions card
-            ConfigCard(title = "Exclure des facteurs") {
-                ToggleRow("Exclure le × 0", excludeZero) { excludeZero = it }
-                ToggleRow("Exclure le × 1", excludeOne)  { excludeOne  = it }
-                ToggleRow("Exclure le × 10", excludeTen) { excludeTen  = it }
-            }
-
-            Spacer(Modifier.height(12.dp))
 
             // Timer card
             ConfigCard(title = "Chronomètre") {
@@ -123,15 +104,6 @@ fun AdvancedConfigScreen(
                         questionCount = (questionCount + step).coerceAtMost(MAX_QUESTION_COUNT)
                     }
                 }
-                if (maxPool > 0 && clampedCount > maxPool) {
-                    Text(
-                        "⚠️ Les questions seront répétées (pool = $maxPool)",
-                        fontSize = 12.sp,
-                        color = AppColors.Orange,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
                 // Quick presets
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -163,9 +135,6 @@ fun AdvancedConfigScreen(
                     gameViewModel.prepareGame(
                         GameConfig(
                             selectedTables = selectedTables,
-                            excludeZero = excludeZero,
-                            excludeOne = excludeOne,
-                            excludeTen = excludeTen,
                             timerEnabled = timerEnabled,
                             questionCount = clampedCount,
                             mode = mode,

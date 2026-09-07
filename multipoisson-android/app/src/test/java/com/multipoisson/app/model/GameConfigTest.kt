@@ -36,9 +36,6 @@ class GameConfigTest {
     @Test
     fun `GameConfig defaults are sane`() {
         val config = GameConfig(selectedTables = listOf(5), questionCount = 10)
-        assertFalse(config.excludeZero)
-        assertFalse(config.excludeOne)
-        assertFalse(config.excludeTen)
         assertFalse(config.timerEnabled)
         assertEquals(GameMode.TABLE, config.mode)
         assertTrue(config.profileId.isEmpty())

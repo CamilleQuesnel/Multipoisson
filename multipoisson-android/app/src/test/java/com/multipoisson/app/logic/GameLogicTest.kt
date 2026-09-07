@@ -18,41 +18,21 @@ class GameLogicTest {
     }
 
     @Test
-    fun `generateQuestions respects excludeZero`() {
-        val config = GameConfig(selectedTables = listOf(5), questionCount = 50, excludeZero = true)
+    fun `generateQuestions includes trivial multipliers 0 1 10`() {
+        val config = GameConfig(selectedTables = listOf(5), questionCount = 100)
         val questions = generateQuestions(config)
-        assertTrue(questions.none { it.b == 0 })
+        assertTrue(questions.any { it.b == 0 })
+        assertTrue(questions.any { it.b == 1 })
+        assertTrue(questions.any { it.b == 10 })
     }
 
     @Test
-    fun `generateQuestions respects excludeOne`() {
-        val config = GameConfig(selectedTables = listOf(4), questionCount = 50, excludeOne = true)
+    fun `generateQuestions shows trivial multipliers less often than core multipliers`() {
+        val config = GameConfig(selectedTables = listOf(3), questionCount = 100)
         val questions = generateQuestions(config)
-        assertTrue(questions.none { it.b == 1 })
-    }
-
-    @Test
-    fun `generateQuestions respects excludeTen`() {
-        val config = GameConfig(selectedTables = listOf(2), questionCount = 50, excludeTen = true)
-        val questions = generateQuestions(config)
-        assertTrue(questions.none { it.b == 10 })
-    }
-
-    @Test
-    fun `generateQuestions returns empty list when pool is empty`() {
-        // All multipliers excluded → empty pool
-        val config = GameConfig(
-            selectedTables = listOf(3),
-            questionCount = 5,
-            excludeZero = true,
-            excludeOne = true,
-            excludeTen = true,
-        )
-        // Pool has 0..10 minus 0, 1, 10 = 8 values — not empty
-        // To get truly empty we'd need to exclude all, which isn't possible with 3 flags.
-        // Instead test that results are within the allowed factors.
-        val questions = generateQuestions(config)
-        assertTrue(questions.all { it.b in 2..9 })
+        val trivialCount = questions.count { it.b in setOf(0, 1, 10) }
+        val coreCount    = questions.count { it.b in 2..9 }
+        assertTrue("trivial ($trivialCount) should appear less than core ($coreCount)", trivialCount < coreCount)
     }
 
     @Test
