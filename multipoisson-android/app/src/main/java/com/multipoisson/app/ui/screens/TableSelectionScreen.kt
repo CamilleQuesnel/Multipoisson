@@ -21,8 +21,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import com.multipoisson.app.ui.theme.AppColors
 import com.multipoisson.app.ui.viewmodel.GameViewModel
+
+// Color per table: Pair(vibrant top, vibrant bottom)
+private val TABLE_COLORS = listOf(
+    Color(0xFF42A5F5) to Color(0xFF1565C0), // ×1  bleu ciel
+    Color(0xFF66BB6A) to Color(0xFF2E7D32), // ×2  vert
+    Color(0xFFFFCA28) to Color(0xFFF57F17), // ×3  jaune-or
+    Color(0xFFEF5350) to Color(0xFFB71C1C), // ×4  rouge
+    Color(0xFFAB47BC) to Color(0xFF6A1B9A), // ×5  violet
+    Color(0xFFFF7043) to Color(0xFFBF360C), // ×6  orange
+    Color(0xFF26C6DA) to Color(0xFF006064), // ×7  cyan
+    Color(0xFF5C6BC0) to Color(0xFF1A237E), // ×8  indigo
+    Color(0xFFEC407A) to Color(0xFF880E4F), // ×9  rose
+    Color(0xFF26A69A) to Color(0xFF004D40), // ×10 teal
+)
 
 @Composable
 fun TableSelectionScreen(
@@ -125,13 +140,14 @@ private fun TableCell(n: Int, isSelected: Boolean, onClick: () -> Unit) {
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = when {
-            isPressed   -> 0.88f
-            isSelected  -> 1.05f
-            else        -> 1f
+            isPressed  -> 0.88f
+            isSelected -> 1.05f
+            else       -> 1f
         },
         animationSpec = spring(dampingRatio = 0.5f, stiffness = 500f),
         label = "cellScale$n",
     )
+    val (colorTop, colorBottom) = TABLE_COLORS[(n - 1).coerceIn(0, TABLE_COLORS.lastIndex)]
 
     Box(
         contentAlignment = Alignment.Center,
@@ -141,13 +157,13 @@ private fun TableCell(n: Int, isSelected: Boolean, onClick: () -> Unit) {
             .clip(RoundedCornerShape(16.dp))
             .background(
                 if (isSelected)
-                    Brush.verticalGradient(listOf(AppColors.Blue, AppColors.BlueDark))
+                    Brush.verticalGradient(listOf(colorTop, colorBottom))
                 else
-                    Brush.verticalGradient(listOf(AppColors.White, AppColors.White))
+                    Brush.verticalGradient(listOf(colorTop.copy(alpha = 0.18f), colorTop.copy(alpha = 0.10f)))
             )
             .border(
                 width = 2.dp,
-                color = if (isSelected) AppColors.BlueDark else AppColors.Border,
+                color = if (isSelected) colorBottom else colorTop.copy(alpha = 0.45f),
                 shape = RoundedCornerShape(16.dp),
             )
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
@@ -157,7 +173,7 @@ private fun TableCell(n: Int, isSelected: Boolean, onClick: () -> Unit) {
             text = "×$n",
             fontSize = 22.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (isSelected) AppColors.White else AppColors.TextPrimary,
+            color = if (isSelected) Color.White else colorBottom,
         )
     }
 }
