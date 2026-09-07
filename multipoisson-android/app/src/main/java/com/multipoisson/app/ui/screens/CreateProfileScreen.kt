@@ -1,7 +1,7 @@
 package com.multipoisson.app.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,8 +17,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import com.multipoisson.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -34,7 +38,7 @@ import com.multipoisson.app.ui.viewmodel.CreateProfileViewModel
 // ── Step metadata ──────────────────────────────────────────────────────────────
 
 private val STEPS = listOf(
-    Triple("🐟", "Comment tu t'appelles ?",       "Écris ton prénom"),
+    Triple(null,  "Comment tu t'appelles ?",       "Écris ton prénom"),
     Triple("📚", "Tu es en quelle classe ?",        "Choisis ta classe"),
     Triple("🎂", "C'est quand ton anniversaire ?",  "Pour les événements spéciaux"),
 )
@@ -123,7 +127,11 @@ fun CreateProfileScreen(navController: NavController) {
                 ) {
                     val (emoji, title, subtitle) = STEPS[currentStep]
 
-                    Text(emoji, fontSize = 64.sp)
+                    if (currentStep == 0) {
+                        FloatingMascot()
+                    } else {
+                        Text(emoji ?: "", fontSize = 64.sp)
+                    }
                     Spacer(Modifier.height(12.dp))
                     Text(title, fontSize = 24.sp, fontWeight = FontWeight.Black, color = AppColors.TextPrimary, textAlign = TextAlign.Center)
                     Text(subtitle, fontSize = 14.sp, color = AppColors.TextSecondary, textAlign = TextAlign.Center)
@@ -173,6 +181,27 @@ fun CreateProfileScreen(navController: NavController) {
             }
         }
     }
+}
+
+// ── Floating mascot ────────────────────────────────────────────────────────────
+
+@Composable
+private fun FloatingMascot() {
+    val infiniteTransition = rememberInfiniteTransition(label = "float")
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -12f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "floatY",
+    )
+    Image(
+        painter = painterResource(R.drawable.mascot_base),
+        contentDescription = "Mascotte",
+        modifier = Modifier.size(120.dp).offset(y = offsetY.dp),
+    )
 }
 
 // ── Step 1 — Name ──────────────────────────────────────────────────────────────
@@ -335,6 +364,7 @@ private fun BirthdateDropdown(
             value = options[safeIndex],
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             label = { Text(label, fontSize = 11.sp) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
