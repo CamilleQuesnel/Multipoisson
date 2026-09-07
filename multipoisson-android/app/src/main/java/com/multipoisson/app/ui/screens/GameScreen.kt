@@ -2,6 +2,8 @@ package com.multipoisson.app.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -23,7 +25,6 @@ import com.multipoisson.app.ui.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
 
 private const val FEEDBACK_CORRECT_MS = 2_000L
-private const val FEEDBACK_WRONG_MS   = 3_000L
 
 private sealed class Phase {
     object Playing : Phase()
@@ -83,18 +84,15 @@ fun GameScreen(
         }
     }
 
-    // Feedback phase
-    LaunchedEffect(phase) {
-        if (phase is Phase.Playing) return@LaunchedEffect
-        timerPaused = true
-        delay(if (phase is Phase.FeedbackCorrect) FEEDBACK_CORRECT_MS else FEEDBACK_WRONG_MS)
+    // Helper to advance to next question or finish
+    fun advance() {
         timerPaused = false
         val next = currentIndex + 1
         if (next >= questions.size) {
             gameViewModel.finishGame(
-                score         = correctCount * 5,
-                maxScore      = questions.size * 5,
-                bonusPoints   = bonusPoints,
+                score          = correctCount * 5,
+                maxScore       = questions.size * 5,
+                bonusPoints    = bonusPoints,
                 elapsedSeconds = if (config.timerEnabled) elapsedSeconds else null,
             )
             onFinish()
@@ -103,6 +101,18 @@ fun GameScreen(
             inputValue = ""
             phase = Phase.Playing
         }
+    }
+
+    // Correct: auto-advance after 2s. Wrong: wait for tap (advance() called on click)
+    LaunchedEffect(phase) {
+        if (phase !is Phase.FeedbackCorrect) return@LaunchedEffect
+        timerPaused = true
+        delay(FEEDBACK_CORRECT_MS)
+        advance()
+    }
+    // Pause timer immediately on wrong answer (resume happens in advance())
+    LaunchedEffect(phase) {
+        if (phase is Phase.FeedbackWrong) timerPaused = true
     }
 
     val question = questions[currentIndex]
@@ -222,16 +232,24 @@ fun GameScreen(
                 feedbackScale.snapTo(0f)
                 feedbackScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 280f))
             }
+            val isWrong = phase is Phase.FeedbackWrong
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .scale(feedbackScale.value)
                     .background(
-                        if (phase is Phase.FeedbackCorrect)
+                        if (!isWrong)
                             Brush.verticalGradient(listOf(Color(0xFF4CAF50), Color(0xFF2E7D32)))
                         else
                             Brush.verticalGradient(listOf(Color(0xFFFF7043), Color(0xFFE64A19)))
+                    )
+                    .then(
+                        if (isWrong) Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { advance() },
+                        ) else Modifier
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -275,6 +293,13 @@ fun GameScreen(
                             )
                         }
                         Text("Retiens bien ! 🧠", fontSize = 20.sp, color = Color.White.copy(0.9f), fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(24.dp))
+                        Text(
+                            "Tape pour continuer →",
+                            fontSize = 16.sp,
+                            color = Color.White.copy(0.65f),
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }
