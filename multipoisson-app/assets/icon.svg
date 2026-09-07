@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#44CCFF"/>
+      <stop offset="100%" stop-color="#0099DD"/>
+    </linearGradient>
+    <linearGradient id="fish" x1="0%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D8F0FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond arrondi bleu -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Queue du poisson -->
+  <path d="M730,512 L880,370 L880,654 Z" fill="#C8E8F8"/>
+
+  <!-- Corps principal (tête) -->
+  <ellipse cx="460" cy="512" rx="290" ry="230" fill="url(#fish)"/>
+
+  <!-- Nageoire dorsale -->
+  <path d="M520,295 Q560,200 630,285 Q580,290 520,295 Z" fill="#D8EEFF"/>
+
+  <!-- Nageoire pectorale -->
+  <path d="M480,610 Q380,700 320,680 Q370,640 480,610 Z" fill="#D8EEFF"/>
+
+  <!-- Œil blanc -->
+  <circle cx="360" cy="470" r="72" fill="white"/>
+  <!-- Iris -->
+  <circle cx="370" cy="480" r="50" fill="#1A2A4A"/>
+  <!-- Reflet -->
+  <circle cx="350" cy="460" r="18" fill="white"/>
+  <circle cx="376" cy="488" r="8" fill="white" opacity="0.5"/>
+
+  <!-- Sourire -->
+  <path d="M310,565 Q400,635 490,565"
+        stroke="#88BBDD" stroke-width="16"
+        fill="none" stroke-linecap="round"/>
+
+  <!-- Dents (petit sourire joyeux) -->
+  <path d="M330,575 Q400,625 470,575"
+        stroke="white" stroke-width="10"
+        fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Joue rose -->
+  <ellipse cx="500" cy="560" rx="55" ry="38" fill="#FFB0CC" opacity="0.38"/>
+
+  <!-- ════ Croix × jaune (symbole multiplication) ════ -->
+  <!-- Ombre portée -->
+  <g transform="translate(680,300)" opacity="0.25">
+    <line x1="-95" y1="-95" x2="95" y2="95"
+          stroke="#996600" stroke-width="88" stroke-linecap="round"/>
+    <line x1="95"  y1="-95" x2="-95" y2="95"
+          stroke="#996600" stroke-width="88" stroke-linecap="round"/>
+  </g>
+  <!-- Corps du × -->
+  <g transform="translate(680,300)">
+    <line x1="-90" y1="-90" x2="90" y2="90"
+          stroke="#FFD900" stroke-width="72" stroke-linecap="round"/>
+    <line x1="90"  y1="-90" x2="-90" y2="90"
+          stroke="#FFD900" stroke-width="72" stroke-linecap="round"/>
+  </g>
+  <!-- Reflet lumineux sur le × -->
+  <g transform="translate(680,300)" opacity="0.45">
+    <line x1="-65" y1="-80" x2="-20" y2="-35"
+          stroke="white" stroke-width="20" stroke-linecap="round"/>
+  </g>
+</svg>
