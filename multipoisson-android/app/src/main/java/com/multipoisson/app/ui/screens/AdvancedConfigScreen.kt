@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.multipoisson.app.model.GameConfig
+import com.multipoisson.app.model.GameMode
 import com.multipoisson.app.model.MAX_QUESTION_COUNT
 import com.multipoisson.app.ui.theme.AppColors
 import com.multipoisson.app.ui.viewmodel.GameViewModel
@@ -24,11 +25,13 @@ fun AdvancedConfigScreen(
     onStart: () -> Unit,
 ) {
     val selectedTables = gameViewModel.selectedTables
+    val mode = gameViewModel.selectedMode
+    val isDefi = mode == GameMode.DEFI
 
     var excludeZero by remember { mutableStateOf(false) }
     var excludeOne  by remember { mutableStateOf(false) }
     var excludeTen  by remember { mutableStateOf(false) }
-    var timerEnabled by remember { mutableStateOf(false) }
+    var timerEnabled by remember { mutableStateOf(isDefi) }
     var questionCount by remember { mutableIntStateOf(20) }
 
     val maxPool = run {
@@ -52,7 +55,11 @@ fun AdvancedConfigScreen(
         ) {
             Spacer(Modifier.height(48.dp))
             Text(
-                "Réglages",
+                when (mode) {
+                    GameMode.DEFI  -> "⚡ Config du défi"
+                    GameMode.MIXTE -> "🔀 Config Mixte"
+                    else           -> "Réglages"
+                },
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Black,
                 color = AppColors.TextPrimary,
@@ -72,7 +79,17 @@ fun AdvancedConfigScreen(
 
             // Timer card
             ConfigCard(title = "Chronomètre") {
-                ToggleRow("Activer le chrono (bonus de vitesse)", timerEnabled) { timerEnabled = it }
+                if (isDefi) {
+                    Text(
+                        "⚡ Chrono activé — le défi, c'est la vitesse !",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppColors.Orange,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    ToggleRow("Activer le chrono (bonus de vitesse)", timerEnabled) { timerEnabled = it }
+                }
                 if (timerEnabled) {
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -151,6 +168,7 @@ fun AdvancedConfigScreen(
                             excludeTen = excludeTen,
                             timerEnabled = timerEnabled,
                             questionCount = clampedCount,
+                            mode = mode,
                         )
                     )
                     onStart()

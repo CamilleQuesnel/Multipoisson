@@ -8,6 +8,7 @@ import com.multipoisson.app.data.preferences.AppPreferences
 import com.multipoisson.app.data.repository.CollectionRepository
 import com.multipoisson.app.data.repository.GameRepository
 import com.multipoisson.app.model.GameConfig
+import com.multipoisson.app.model.GameMode
 import com.multipoisson.app.model.GameResult
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -22,6 +23,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     // ── Set by upstream screens ────────────────────────────────────────────
     var selectedTables by mutableStateOf<List<Int>>(emptyList())
+        private set
+
+    var selectedMode by mutableStateOf(GameMode.TABLE)
         private set
 
     var config by mutableStateOf<GameConfig?>(null)
@@ -46,6 +50,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     @JvmName("updateSelectedTables")
     fun setSelectedTables(tables: List<Int>) {
         selectedTables = tables
+    }
+
+    fun setMode(mode: GameMode) {
+        selectedMode = mode
     }
 
     /** Called by AdvancedConfigScreen just before navigating to Countdown. */
@@ -108,6 +116,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /** Reset everything when the player starts a new game from ResultScreen. */
     fun reset() {
         selectedTables    = emptyList()
+        selectedMode      = GameMode.TABLE
         config            = null
         gameResult        = null
         newlyUnlockedFish = emptyList()

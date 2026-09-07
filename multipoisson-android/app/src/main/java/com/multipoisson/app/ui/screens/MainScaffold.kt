@@ -11,11 +11,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.multipoisson.app.data.preferences.AppPreferences
 import androidx.compose.ui.platform.LocalContext
 import com.multipoisson.app.navigation.Screen
 import com.multipoisson.app.ui.theme.AppColors
+import com.multipoisson.app.ui.viewmodel.GameViewModel
 
 private enum class Tab(val label: String, val icon: ImageVector) {
     JOUER("Jouer", Icons.Filled.PlayArrow),
@@ -29,6 +31,9 @@ fun MainScaffold(navController: NavController) {
     val appPrefs = remember { AppPreferences(context) }
     val activeProfileId by appPrefs.activeProfileId.collectAsState(initial = null)
     val profileId = activeProfileId ?: ""
+
+    // Scoped to Main back-stack entry — same instance the game flow uses
+    val gameViewModel: GameViewModel = viewModel()
 
     var selectedTab by remember { mutableStateOf(Tab.JOUER) }
 
@@ -68,7 +73,7 @@ fun MainScaffold(navController: NavController) {
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             // ── Tab content ────────────────────────────────────────────────
             when (selectedTab) {
-                Tab.JOUER      -> JouerTab(navController = navController)
+                Tab.JOUER      -> JouerTab(navController = navController, gameViewModel = gameViewModel)
                 Tab.AQUARIUM   -> AquariumTab(profileId = profileId)
                 Tab.EVENEMENTS -> EvenementsTab(profileId = profileId)
             }
