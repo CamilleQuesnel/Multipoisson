@@ -124,6 +124,13 @@ fun AppNavGraph(navController: NavHostController) {
             ResultScreen(
                 gameViewModel = gameViewModel,
                 onReplay = {
+                    // Keep selectedTables, go straight to config
+                    navController.navigate(Screen.AdvancedConfig.route) {
+                        popUpTo(Screen.Result.route) { inclusive = true }
+                    }
+                },
+                onHome = {
+                    gameViewModel.reset()
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Main.route) { inclusive = false }
                     }

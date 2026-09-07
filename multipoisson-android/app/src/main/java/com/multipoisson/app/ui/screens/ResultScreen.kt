@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 fun ResultScreen(
     gameViewModel: GameViewModel,
     onReplay: () -> Unit,
+    onHome: () -> Unit,
 ) {
     val isSaving = gameViewModel.isSaving
     val result   = gameViewModel.gameResult
@@ -233,16 +234,13 @@ fun ResultScreen(
                 label = "🔄 Rejouer",
                 containerColor = AppColors.Green,
                 modifier = Modifier.weight(1f),
-                onClick = {
-                    gameViewModel.reset()
-                    onReplay()
-                },
+                onClick = onReplay,
             )
             ActionButton(
-                label = "👤 Changer",
+                label = "🏠 Accueil",
                 containerColor = AppColors.Blue,
                 modifier = Modifier.weight(1f),
-                onClick = onReplay,
+                onClick = onHome,
             )
         }
 

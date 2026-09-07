@@ -1,19 +1,26 @@
 package com.multipoisson.app.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.multipoisson.app.data.preferences.AppPreferences
+import com.multipoisson.app.data.repository.ProfileRepository
 import androidx.compose.ui.platform.LocalContext
 import com.multipoisson.app.navigation.Screen
 import com.multipoisson.app.ui.theme.AppColors
@@ -29,8 +36,12 @@ private enum class Tab(val label: String, val icon: ImageVector) {
 fun MainScaffold(navController: NavController) {
     val context = LocalContext.current
     val appPrefs = remember { AppPreferences(context) }
+    val profileRepo = remember { ProfileRepository(context) }
     val activeProfileId by appPrefs.activeProfileId.collectAsState(initial = null)
     val profileId = activeProfileId ?: ""
+
+    val allProfiles by profileRepo.observeAll().collectAsState(initial = emptyList())
+    val currentProfile = allProfiles.find { it.id == profileId }
 
     // Scoped to Main back-stack entry — same instance the game flow uses
     val gameViewModel: GameViewModel = viewModel()
@@ -76,6 +87,32 @@ fun MainScaffold(navController: NavController) {
                 Tab.JOUER      -> JouerTab(navController = navController, gameViewModel = gameViewModel)
                 Tab.AQUARIUM   -> AquariumTab(profileId = profileId)
                 Tab.EVENEMENTS -> EvenementsTab(profileId = profileId)
+            }
+
+            // ── Avatar chip — top-left, taps to switch player ─────────────
+            if (currentProfile != null) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 8.dp, start = 8.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(AppColors.White)
+                        .border(1.5.dp, AppColors.Border, RoundedCornerShape(20.dp))
+                        .clickable { navController.navigate(Screen.ProfilePicker.route) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text("🐟", fontSize = 16.sp)
+                    Text(
+                        currentProfile.name,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
 
             // ── Gear icon — top-right, always visible on main ──────────────
