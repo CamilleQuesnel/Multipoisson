@@ -2,6 +2,7 @@ package com.multipoisson.app.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -121,28 +122,7 @@ fun ProfilePickerScreen(navController: NavController) {
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            // Mascotte flottante
-            val mascotTransition = rememberInfiniteTransition(label = "mascotFloat")
-            val mascotY by mascotTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = -14f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1600, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-                label = "mascotY",
-            )
-            Image(
-                painter = painterResource(R.drawable.mascot_base),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(140.dp)
-                    .offset(y = mascotY.dp),
-            )
-
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 "MultiPoisson",
@@ -157,6 +137,37 @@ fun ProfilePickerScreen(navController: NavController) {
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = 0.85f),
                 textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // Mascotte flottante avec clignement
+            val mascotTransition = rememberInfiniteTransition(label = "mascotFloat")
+            val mascotY by mascotTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = -14f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1600, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "mascotY",
+            )
+            // Blink: scaleY flashes to 0.82 for ~110ms every ~3.5s
+            val blinkScaleY = remember { Animatable(1f) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    kotlinx.coroutines.delay(3500L)
+                    blinkScaleY.animateTo(0.82f, tween(55, easing = FastOutSlowInEasing))
+                    blinkScaleY.animateTo(1f,    tween(110, easing = LinearOutSlowInEasing))
+                }
+            }
+            Image(
+                painter = painterResource(R.drawable.mascot_base),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .offset(y = mascotY.dp)
+                    .graphicsLayer { scaleY = blinkScaleY.value },
             )
 
             Spacer(Modifier.height(32.dp))
