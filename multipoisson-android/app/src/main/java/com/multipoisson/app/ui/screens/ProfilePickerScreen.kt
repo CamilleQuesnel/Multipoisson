@@ -17,8 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.painterResource
+import com.multipoisson.app.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -118,22 +121,45 @@ fun ProfilePickerScreen(navController: NavController) {
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
+
+            // Mascotte flottante
+            val mascotTransition = rememberInfiniteTransition(label = "mascotFloat")
+            val mascotY by mascotTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = -14f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1600, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+                label = "mascotY",
+            )
+            Image(
+                painter = painterResource(R.drawable.mascot_base),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(140.dp)
+                    .offset(y = mascotY.dp),
+            )
+
+            Spacer(Modifier.height(12.dp))
 
             Text(
-                "🐟 MultiPoisson",
+                "MultiPoisson",
                 fontSize = 38.sp,
                 fontWeight = FontWeight.Black,
                 color = Color.White,
+                textAlign = TextAlign.Center,
             )
             Text(
                 "Qui est là ?",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = 0.85f),
+                textAlign = TextAlign.Center,
             )
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(32.dp))
 
             // ── Profile grid ───────────────────────────────────────────────
             val items: List<ProfileRepository.Profile?> = buildList {
