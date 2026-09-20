@@ -1,9 +1,11 @@
 package com.multipoisson.app.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -18,7 +20,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import com.multipoisson.app.R
@@ -26,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,6 +40,10 @@ import com.multipoisson.app.data.repository.ProfileRepository
 import com.multipoisson.app.navigation.Screen
 import com.multipoisson.app.ui.theme.AppColors
 import com.multipoisson.app.ui.viewmodel.ProfileViewModel
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** Colors cycling across profile slots (index 0–4). */
 private val PROFILE_COLORS = listOf(
@@ -44,32 +54,22 @@ private val PROFILE_COLORS = listOf(
     Color(0xFFE91E8C), // rose vif
 )
 
+// ── Bubble configuration ───────────────────────────────────────────────────
+
+private data class BubbleConfig(val xFraction: Float, val size: Dp, val durationMs: Int, val delayMs: Int)
+
+private val BUBBLE_CONFIGS = listOf(
+    BubbleConfig(0.18f, 12.dp, 4800,    0),
+    BubbleConfig(0.55f,  8.dp, 6200, 1200),
+    BubbleConfig(0.80f, 16.dp, 5400, 2400),
+    BubbleConfig(0.35f, 10.dp, 7100,  600),
+)
+
 @Composable
 fun ProfilePickerScreen(navController: NavController) {
     val profileViewModel: ProfileViewModel = viewModel()
     val profiles by profileViewModel.profiles.collectAsState()
     val canAddProfile = profiles.size < 5
-
-    // ── Bubble animations ──────────────────────────────────────────────────
-    val infiniteTransition = rememberInfiniteTransition(label = "bubbles")
-    val bubbles = listOf(
-        Triple(0.18f, 12.dp, 4800),
-        Triple(0.55f, 8.dp,  6200),
-        Triple(0.80f, 16.dp, 5400),
-        Triple(0.35f, 10.dp, 7100),
-    )
-    val bubbleOffsets = bubbles.mapIndexed { i, (_, _, dur) ->
-        infiniteTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = -0.35f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(dur, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-                initialStartOffset = StartOffset(i * 1200),
-            ),
-            label = "bubble$i",
-        )
-    }
 
     Box(
         modifier = Modifier
@@ -82,19 +82,10 @@ fun ProfilePickerScreen(navController: NavController) {
                 )
             ),
     ) {
-        // ── Floating bubbles (decorative) ──────────────────────────────────
+        // ── Floating bubbles (tap to pop!) ─────────────────────────────────
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val screenH = maxHeight
-            bubbles.forEachIndexed { i, (xFraction, size, _) ->
-                val yOffset = screenH * bubbleOffsets[i].value
-                Box(
-                    modifier = Modifier
-                        .offset(x = maxWidth * xFraction, y = screenH + yOffset)
-                        .size(size)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.25f))
-                        .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape),
-                )
+            BUBBLE_CONFIGS.forEach { cfg ->
+                FloatingBubble(cfg, maxWidth, maxHeight)
             }
         }
 
@@ -196,6 +187,89 @@ fun ProfilePickerScreen(navController: NavController) {
         }
     }
 }
+
+// ── Floating bubble (tappable, pops on tap) ────────────────────────────────
+
+@Composable
+private fun FloatingBubble(cfg: BubbleConfig, screenW: Dp, screenH: Dp) {
+    val trans = rememberInfiniteTransition(label = "b${cfg.durationMs}")
+    val yFraction by trans.animateFloat(
+        initialValue = 1f,
+        targetValue = -0.35f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(cfg.durationMs, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+            initialStartOffset = StartOffset(cfg.delayMs),
+        ),
+        label = "bY${cfg.durationMs}",
+    )
+
+    var isPopping by remember { mutableStateOf(false) }
+    val popScale  = remember { Animatable(1f) }
+    val popAlpha  = remember { Animatable(1f) }
+    val particles = remember { Animatable(0f) }
+
+    LaunchedEffect(isPopping) {
+        if (!isPopping) return@LaunchedEffect
+        launch { popScale.animateTo(2.0f, tween(170, easing = FastOutSlowInEasing)) }
+        launch { popAlpha.animateTo(0f,   tween(170)) }
+        launch { particles.animateTo(1f,  tween(220)) }
+        delay(380)
+        popScale.snapTo(1f)
+        popAlpha.snapTo(1f)
+        particles.snapTo(0f)
+        isPopping = false
+    }
+
+    Box(
+        modifier = Modifier.offset(
+            x = screenW * cfg.xFraction,
+            y = screenH + screenH * yFraction,
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Burst: 6 dots radiating outward on pop
+        if (particles.value > 0f) {
+            val pv     = particles.value
+            val pAlpha = (1f - pv).coerceIn(0f, 1f)
+            Canvas(modifier = Modifier.size(cfg.size * 5f)) {
+                val cx      = size.width / 2f
+                val cy      = size.height / 2f
+                val maxDist = cfg.size.toPx() * 2.2f
+                listOf(0f, 60f, 120f, 180f, 240f, 300f).forEach { angle ->
+                    val rad  = Math.toRadians(angle.toDouble())
+                    val dist = maxDist * pv
+                    drawCircle(
+                        color  = Color.White.copy(alpha = pAlpha * 0.9f),
+                        radius = 3.dp.toPx(),
+                        center = Offset(
+                            cx + (dist * cos(rad)).toFloat(),
+                            cy + (dist * sin(rad)).toFloat(),
+                        ),
+                    )
+                }
+            }
+        }
+
+        // Bubble itself
+        Box(
+            modifier = Modifier
+                .size(cfg.size)
+                .scale(popScale.value)
+                .alpha(popAlpha.value)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.25f))
+                .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    enabled = !isPopping,
+                ) { isPopping = true },
+        )
+    }
+}
+
+// ── Profile cards ──────────────────────────────────────────────────────────
 
 @Composable
 private fun ProfileCard(name: String, color: Color, onClick: () -> Unit) {
